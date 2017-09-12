@@ -1,0 +1,22 @@
+{
+  "name": "particleground-light",
+  "version": "1.0.0",
+  "description": "JavaScript library for snazzy background particle systems build in ES6 with Babel",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "npm run build",
+    "build": "babel ./src --out-dir dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vaivanov/particleground-light.git"
+  },
+  "author": "Vladimir Ivanov",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-es2015": "^6.24.1"
+  }
+}
