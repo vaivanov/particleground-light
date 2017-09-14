@@ -1,6 +1,6 @@
 {
   "name": "particleground-light",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "JavaScript library for snazzy background particle systems build in ES6 with Babel",
   "main": "dist/index.js",
   "scripts": {
