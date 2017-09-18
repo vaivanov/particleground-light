@@ -48,7 +48,7 @@ class Particle {
     this.styleCanvas();
 
     // Create particles
-    let numParticles = Math.round((this.props.canvas.width * this.props.canvas.height) / this.options.density / this.props.pixelRatio);
+    let numParticles = Math.round((this.props.canvas.width * this.props.canvas.height) / this.options.density / Math.pow(this.props.pixelRatio, 2));
     for (let i = 0; i < numParticles; i++) {
       let p = new ParticleItem(this.props, this.options);
       p.setStackPos(i);
@@ -121,8 +121,8 @@ class Particle {
     // Resize the canvas
     this.styleCanvas();
 
-    let elWidth = this.props.element.offsetWidth;
-    let elHeight = this.props.element.offsetHeight;
+    let elWidth = this.props.element.offsetWidth * this.props.pixelRatio;
+    let elHeight = this.props.element.offsetHeight * this.props.pixelRatio;
 
     // Remove particles that are outside the canvas
     for (let i = this.props.particles.length - 1; i >= 0; i--) {
@@ -132,7 +132,7 @@ class Particle {
     }
 
     // Adjust particle density
-    let numParticles = Math.round((this.props.canvas.width * this.props.canvas.height) / this.options.density);
+    let numParticles = Math.round((this.props.canvas.width * this.props.canvas.height) / this.options.density / Math.pow(this.props.pixelRatio, 2));
     if (numParticles > this.props.particles.length) {
       while (numParticles > this.props.particles.length) {
         let p = new ParticleItem(this.props, this.options);
@@ -250,7 +250,7 @@ class ParticleItem {
       let dist = Math.sqrt((a * a) + (b * b)).toFixed(2);
 
       // If the two particles are in proximity, join them
-      if (dist < this.options.proximity) {
+      if (dist < this.options.proximity * this.props.pixelRatio) {
         this.props.ctx.moveTo(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY);
         if (this.options.curvedLines) {
           this.props.ctx.quadraticCurveTo(Math.max(p2.position.x, p2.position.x), Math.min(p2.position.y, p2.position.y), p2.position.x + p2.parallaxOffsetX, p2.position.y + p2.parallaxOffsetY);
