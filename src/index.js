@@ -9,6 +9,7 @@ class Particle {
       orientationSupport: !!window.DeviceOrientationEvent,
       tiltX: 0,
       tiltY: 0,
+      pixelRatio: window.devicePixelRatio || 1,
       paused: false,
       element
     };
@@ -36,13 +37,18 @@ class Particle {
     //Create canvas
     this.props.canvas = document.createElement('canvas');
     this.props.canvas.className = 'pg-canvas';
+    this.props.canvas.style.width = '100%';
+    this.props.canvas.style.height = '100%';
+    this.props.canvas.style.top = 0;
+    this.props.canvas.style.left = 0;
     this.props.canvas.style.display = 'block';
+    this.props.element.style.position = 'relative';
     this.props.element.insertBefore(this.props.canvas, this.props.element.firstChild);
     this.props.ctx = this.props.canvas.getContext('2d');
     this.styleCanvas();
 
     // Create particles
-    let numParticles = Math.round((this.props.canvas.width * this.props.canvas.height) / this.options.density);
+    let numParticles = Math.round((this.props.canvas.width * this.props.canvas.height) / this.options.density / Math.pow(this.props.pixelRatio, 2));
     for (let i = 0; i < numParticles; i++) {
       let p = new ParticleItem(this.props, this.options);
       p.setStackPos(i);
@@ -76,11 +82,11 @@ class Particle {
    * Style the canvas
    */
   styleCanvas() {
-    this.props.canvas.width = this.props.element.offsetWidth;
-    this.props.canvas.height = this.props.element.offsetHeight;
+    this.props.canvas.width = this.props.element.offsetWidth * this.props.pixelRatio;
+    this.props.canvas.height = this.props.element.offsetHeight * this.props.pixelRatio;
     this.props.ctx.fillStyle = this.options.dotColor;
     this.props.ctx.strokeStyle = this.options.lineColor;
-    this.props.ctx.lineWidth = this.options.lineWidth;
+    this.props.ctx.lineWidth = this.options.lineWidth * this.props.pixelRatio;
   }
   /**
    * Draw particles
@@ -115,8 +121,8 @@ class Particle {
     // Resize the canvas
     this.styleCanvas();
 
-    let elWidth = this.props.element.offsetWidth;
-    let elHeight = this.props.element.offsetHeight;
+    let elWidth = this.props.element.offsetWidth * this.props.pixelRatio;
+    let elHeight = this.props.element.offsetHeight * this.props.pixelRatio;
 
     // Remove particles that are outside the canvas
     for (let i = this.props.particles.length - 1; i >= 0; i--) {
@@ -126,7 +132,7 @@ class Particle {
     }
 
     // Adjust particle density
-    let numParticles = Math.round((this.props.canvas.width * this.props.canvas.height) / this.options.density);
+    let numParticles = Math.round((this.props.canvas.width * this.props.canvas.height) / this.options.density / Math.pow(this.props.pixelRatio, 2));
     if (numParticles > this.props.particles.length) {
       while (numParticles > this.props.particles.length) {
         let p = new ParticleItem(this.props, this.options);
@@ -228,7 +234,7 @@ class ParticleItem {
   draw() {
     // Draw circle
     this.props.ctx.beginPath();
-    this.props.ctx.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, this.options.particleRadius / 2, 0, Math.PI * 2, true);
+    this.props.ctx.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, this.options.particleRadius * this.props.pixelRatio / 2, 0, Math.PI * 2, true);
     this.props.ctx.closePath();
     this.props.ctx.fill();
 
@@ -244,7 +250,7 @@ class ParticleItem {
       let dist = Math.sqrt((a * a) + (b * b)).toFixed(2);
 
       // If the two particles are in proximity, join them
-      if (dist < this.options.proximity) {
+      if (dist < this.options.proximity * this.props.pixelRatio) {
         this.props.ctx.moveTo(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY);
         if (this.options.curvedLines) {
           this.props.ctx.quadraticCurveTo(Math.max(p2.position.x, p2.position.x), Math.min(p2.position.y, p2.position.y), p2.position.x + p2.parallaxOffsetX, p2.position.y + p2.parallaxOffsetY);
@@ -280,8 +286,8 @@ class ParticleItem {
       this.parallaxOffsetY += (this.parallaxTargY - this.parallaxOffsetY) / 10; // Easing equation
     }
 
-    let elWidth = this.props.element.offsetWidth;
-    let elHeight = this.props.element.offsetHeight;
+    let elWidth = this.props.element.offsetWidth * this.props.pixelRatio;
+    let elHeight = this.props.element.offsetHeight * this.props.pixelRatio;
 
     switch (this.options.directionX) {
     case 'left':
