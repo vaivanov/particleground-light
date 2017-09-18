@@ -8,8 +8,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-// import 'raf';
-
 var Particle = function () {
   function Particle(element) {
     var _this = this;
@@ -17,6 +15,32 @@ var Particle = function () {
     var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
     _classCallCheck(this, Particle);
+
+    this.draw = function () {
+      if (!_this.props.canvasSupport) {
+        return;
+      }
+
+      _this.props.winW = window.innerWidth;
+      _this.props.winH = window.innerHeight;
+
+      // Wipe canvas
+      _this.props.ctx.clearRect(0, 0, _this.props.canvas.width, _this.props.canvas.height);
+
+      // Update particle positions
+      for (var i = 0; i < _this.props.particles.length; i++) {
+        _this.props.particles[i].updatePosition();
+      }
+      // Draw particles
+      for (var _i = 0; _i < _this.props.particles.length; _i++) {
+        _this.props.particles[_i].draw();
+      }
+
+      // Call this function next time screen is redrawn
+      if (!_this.props.paused) {
+        _this.props.raf = requestAnimationFrame(_this.draw);
+      }
+    };
 
     this.props = {
       canvasSupport: !!document.createElement('canvas').getContext,
@@ -27,6 +51,7 @@ var Particle = function () {
       orientationSupport: !!window.DeviceOrientationEvent,
       tiltX: 0,
       tiltY: 0,
+      pixelRatio: window.devicePixelRatio || 1,
       paused: false,
       element: element
     };
@@ -49,7 +74,6 @@ var Particle = function () {
       onInit: options.onInit || undefined,
       onDestroy: options.onDestroy || undefined
     };
-    this.draw = this.draw.bind(this);
     if (!this.props.canvasSupport) {
       return;
     }
@@ -57,13 +81,18 @@ var Particle = function () {
     //Create canvas
     this.props.canvas = document.createElement('canvas');
     this.props.canvas.className = 'pg-canvas';
+    this.props.canvas.style.width = '100%';
+    this.props.canvas.style.height = '100%';
+    this.props.canvas.style.top = 0;
+    this.props.canvas.style.left = 0;
     this.props.canvas.style.display = 'block';
+    this.props.element.style.position = 'relative';
     this.props.element.insertBefore(this.props.canvas, this.props.element.firstChild);
     this.props.ctx = this.props.canvas.getContext('2d');
     this.styleCanvas();
 
     // Create particles
-    var numParticles = Math.round(this.props.canvas.width * this.props.canvas.height / this.options.density);
+    var numParticles = Math.round(this.props.canvas.width * this.props.canvas.height / this.options.density / Math.pow(this.props.pixelRatio, 2));
     for (var i = 0; i < numParticles; i++) {
       var p = new ParticleItem(this.props, this.options);
       p.setStackPos(i);
@@ -99,55 +128,28 @@ var Particle = function () {
   _createClass(Particle, [{
     key: 'styleCanvas',
     value: function styleCanvas() {
-      this.props.canvas.width = this.props.element.offsetWidth;
-      this.props.canvas.height = this.props.element.offsetHeight;
+      this.props.canvas.width = this.props.element.offsetWidth * this.props.pixelRatio;
+      this.props.canvas.height = this.props.element.offsetHeight * this.props.pixelRatio;
       this.props.ctx.fillStyle = this.options.dotColor;
       this.props.ctx.strokeStyle = this.options.lineColor;
-      this.props.ctx.lineWidth = this.options.lineWidth;
+      this.props.ctx.lineWidth = this.options.lineWidth * this.props.pixelRatio;
     }
     /**
      * Draw particles
      */
 
   }, {
-    key: 'draw',
-    value: function draw() {
-      if (!this.props.canvasSupport) {
-        return;
-      }
+    key: 'resizeHandler',
 
-      this.props.winW = window.innerWidth;
-      this.props.winH = window.innerHeight;
-
-      // Wipe canvas
-      this.props.ctx.clearRect(0, 0, this.props.canvas.width, this.props.canvas.height);
-
-      // Update particle positions
-      for (var i = 0; i < this.props.particles.length; i++) {
-        this.props.particles[i].updatePosition();
-      }
-      // Draw particles
-      for (var _i = 0; _i < this.props.particles.length; _i++) {
-        this.props.particles[_i].draw();
-      }
-
-      // Call this function next time screen is redrawn
-      if (!this.props.paused) {
-        this.props.raf = requestAnimationFrame(this.draw);
-      }
-    }
     /**
      * Add/remove particles.
      */
-
-  }, {
-    key: 'resizeHandler',
     value: function resizeHandler() {
       // Resize the canvas
       this.styleCanvas();
 
-      var elWidth = this.props.element.offsetWidth;
-      var elHeight = this.props.element.offsetHeight;
+      var elWidth = this.props.element.offsetWidth * this.props.pixelRatio;
+      var elHeight = this.props.element.offsetHeight * this.props.pixelRatio;
 
       // Remove particles that are outside the canvas
       for (var i = this.props.particles.length - 1; i >= 0; i--) {
@@ -157,7 +159,7 @@ var Particle = function () {
       }
 
       // Adjust particle density
-      var numParticles = Math.round(this.props.canvas.width * this.props.canvas.height / this.options.density);
+      var numParticles = Math.round(this.props.canvas.width * this.props.canvas.height / this.options.density / Math.pow(this.props.pixelRatio, 2));
       if (numParticles > this.props.particles.length) {
         while (numParticles > this.props.particles.length) {
           var p = new ParticleItem(this.props, this.options);
@@ -281,7 +283,7 @@ var ParticleItem = function () {
     value: function draw() {
       // Draw circle
       this.props.ctx.beginPath();
-      this.props.ctx.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, this.options.particleRadius / 2, 0, Math.PI * 2, true);
+      this.props.ctx.arc(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY, this.options.particleRadius * this.props.pixelRatio / 2, 0, Math.PI * 2, true);
       this.props.ctx.closePath();
       this.props.ctx.fill();
 
@@ -297,7 +299,7 @@ var ParticleItem = function () {
         var dist = Math.sqrt(a * a + b * b).toFixed(2);
 
         // If the two particles are in proximity, join them
-        if (dist < this.options.proximity) {
+        if (dist < this.options.proximity * this.props.pixelRatio) {
           this.props.ctx.moveTo(this.position.x + this.parallaxOffsetX, this.position.y + this.parallaxOffsetY);
           if (this.options.curvedLines) {
             this.props.ctx.quadraticCurveTo(Math.max(p2.position.x, p2.position.x), Math.min(p2.position.y, p2.position.y), p2.position.x + p2.parallaxOffsetX, p2.position.y + p2.parallaxOffsetY);
@@ -336,8 +338,8 @@ var ParticleItem = function () {
         this.parallaxOffsetY += (this.parallaxTargY - this.parallaxOffsetY) / 10; // Easing equation
       }
 
-      var elWidth = this.props.element.offsetWidth;
-      var elHeight = this.props.element.offsetHeight;
+      var elWidth = this.props.element.offsetWidth * this.props.pixelRatio;
+      var elHeight = this.props.element.offsetHeight * this.props.pixelRatio;
 
       switch (this.options.directionX) {
         case 'left':
