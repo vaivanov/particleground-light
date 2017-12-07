@@ -27,7 +27,7 @@ class Particle {
       lineWidth: options.lineWidth || 1,
       curvedLines: options.curvedLines || false,
       proximity: options.proximity || 100, // How close two dots need to be before they join
-      parallax: options.parallax || true,
+      parallax: options.parallax !== undefined ? options.parallax : true,
       parallaxMultiplier: options.parallaxMultiplier || 5, // The lower the number, the more extreme the parallax effect
       onInit: options.onInit || undefined,
       onDestroy: options.onDestroy || undefined
